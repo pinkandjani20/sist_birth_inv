@@ -1,0 +1,487 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Undangan Ulang Tahun - Enchanted Forest</title>
+  <link href="https://fonts.googleapis.com/css2?family=MedievalSharp&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-overlay: rgba(0,0,0,0.6);
+      --accent: #c9b37e;
+      --leaf: #2e5f2f;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; font-family: 'MedievalSharp', cursive; }
+    body {
+      color: #f8f1e5;
+    }
+    .custom-cursor {
+    position: fixed;
+    width: 20px;
+    height: 20px;
+    background: radial-gradient(circle, rgba(255,255,255,1) 0%, rgba(255,255,255,0) 70%);
+    border-radius: 50%;
+    pointer-events: none;
+    animation: blink 1.5s infinite;
+    z-index: 9999;
+    }
+
+    @keyframes blink {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(1.5); }
+    }
+    .screen {
+      position: absolute; inset: 0;
+      display: none;
+      align-items: center; justify-content: center;
+      background: var(--bg-overlay);
+      text-align: center;
+    }
+    #videoScreen {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: black;
+      position: absolute;
+      inset: 0;
+      z-index: 10; 
+    }
+    #videoScreen video {
+      width: 100%;
+      height: 100%;
+      object-fit: cover; 
+    }
+
+.skip-button {
+  position: absolute;
+  bottom: 20px;
+  right: 20px;
+  padding: 10px 20px;
+  font-size: 1rem;
+  color: white;
+  background: rgba(0, 0, 0, 0.7);
+  border: 2px solid white;
+  border-radius: 8px;
+  cursor: pointer;
+  z-index: 11; /* Pastikan tombol berada di atas video */
+}
+
+.skip-button:hover {
+  background: rgba(255, 255, 255, 0.7);
+  color: black;
+}
+    #pinScreen {
+    display: flex;
+    background: url('bg_awal.gif') no-repeat center center;
+    background-size: cover; 
+    }
+    .door {
+      position: absolute; top: 0; width: 50%; height: 100%;
+      background-size: cover; transition: transform 1s ease;
+      filter: drop-shadow(0 0 8px rgba(0,0,0,0.7));
+    }
+    .door.left { left: 0; background-image: url(''); }
+    .door.right { left: 50%; background-image: url(''); }
+    .door.open.left  { transform: translateX(-100%); }
+    .door.open.right { transform: translateX(100%); }
+    .pin-content {
+      position: relative; z-index: 2;
+      background: rgba(20,40,20,0.7); padding: 20px;
+      border: 4px solid var(--leaf); border-radius: 16px;
+      backdrop-filter: blur(6px);
+      display: flex; flex-direction: column; align-items: center;
+    }
+    .pin-content img {
+      width: 100px; margin-bottom: 20px;
+    }
+    @keyframes rotate { from {transform:rotate(0);} to {transform:rotate(360deg);} }
+    .pin-content h1 { font-size: 2rem; color: var(--accent); text-shadow: 1px 1px 2px #000; }
+    .pin-content p  { margin: 8px 0 20px; font-size: 0.9rem; }
+    .pin-dots { display: flex; margin-bottom: 20px; }
+    .pin-dots .dot {
+      width: 18px; height: 18px; margin: 0 6px;
+      border: 3px solid var(--accent); border-radius: 50%;
+    }
+    .pin-dots .filled { background: var(--accent); }
+    .keypad {
+      display: grid; grid-template-columns: repeat(3, 70px); grid-gap: 12px;
+    }
+    .keypad button {
+      position: relative; width: 70px; height: 70px;
+      border-radius: 50%; border: 3px solid var(--leaf);
+      background: rgba(76,102,64,0.7); color: #fff;
+      font-size: 1.4rem; cursor: pointer;
+      transition: background 0.3s, transform 0.2s;
+      overflow: hidden;
+    }
+    .keypad button::before {
+      content: '';
+      position: absolute; top: -8px; right: -8px;
+      width: 30px; height: 30px;
+      opacity: 0.7;
+    }
+    .keypad button:hover { background: rgba(76,102,64,0.9); transform: scale(1.05); }
+    #envelopeScreen {
+      position: relative; 
+      overflow: hidden;
+      min-height: 100vh;
+      display: none; background: url('two_bg.png') no-repeat center center;
+      background-size: cover; color: var(--accent);
+      text-align: center; padding: 20px;
+    }
+    .envelope-background {
+      position: absolute;
+      top: 32%;   
+      left: 50%;   
+      transform: translateX(-50%);
+      width: 30%;  
+      height: 40%; 
+      background: rgba(0, 0, 0, 0.6);
+      border-radius: 16px;
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+      z-index: 0;  
+    }
+    .envelope-container {
+      position: relative;
+      z-index: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .envelope { font-size: 9rem; color: var(--accent);
+      text-shadow: 0 0 8px #ffd54f; cursor: pointer;
+      animation: float 3s ease-in-out infinite;
+    }
+    @keyframes zoomIn {
+    from {
+      transform: scale(0.5);
+      opacity: 0;
+    }
+    to {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+    #inviteScreen {
+      display: none; background: url('two_bg.png') no-repeat center center;
+      background-size: cover; color: var(--accent);
+      text-align: center; padding: 20px;
+    }
+    #inviteImage {
+     max-width: 90%;
+     max-height: 80vh;
+     border: 5px solid var(--accent);
+     border-radius: 12px;
+     box-shadow: 0 0 12px rgba(0, 0, 0, 0.8);
+     animation: zoomIn 0.8s ease, fadeIn 1s ease;
+     margin: auto;
+     display: block;
+    }
+    @keyframes float {0%,100%{transform:translateY(0);}50%{transform:translateY(-10px);}}
+    #inviteImage:hover {
+     transform: scale(1.05);
+     transition: transform 0.3s ease;
+    }
+    @keyframes fadeIn {from{opacity:0;}to{opacity:1;}}
+    .twinkle {
+      position:absolute; inset:0;
+      background:url('stars.png') repeat;
+      opacity:0.3; animation:twinkling 20s linear infinite;
+      pointer-events:none;
+    }
+    @keyframes fadeOut {
+     from {
+      opacity: 1;
+     }
+     to {
+      opacity: 0;
+     }
+    }
+    .invite-background {
+      position: absolute; 
+      top: 8%;
+      left: 25%;
+      width: 50%;
+      height: 85%; 
+      background: rgba(0, 0, 0, 0.6); 
+      border-radius: 16px; 
+      box-shadow: 0 0 20px rgba(0, 0, 0, 0.8); 
+      z-index: 0; 
+    }
+    .invite-container {
+      z-index: 1;
+      display: flex;
+      align-items: center; 
+      justify-content: center; 
+      gap: 20px; 
+      flex-wrap: wrap;
+      text-align: center;
+    }
+
+    .invite-container img {
+      max-width: 50%; 
+      max-height: 70vh; 
+      border: 5px solid var(--accent);
+      border-radius: 12px;
+      box-shadow: 0 0 12px rgba(0, 0, 0, 0.8);
+      animation: zoomIn 0.8s ease, fadeIn 1s ease;
+      transition: transform 0.3s ease;
+    }
+
+    .invite-container img:hover {
+      transform: scale(1.05); 
+    }
+
+    .invite-text {
+      font-size: 1.2rem;
+      color: var(--accent);
+      max-width: 40%; 
+    }
+
+    @media (max-width: 768px) {
+      .keypad button {
+        width: 50px; height: 50px; font-size: 1rem;
+      }
+      .envelope {
+        font-size: 6rem; 
+      }
+      .invite-container {
+        flex-direction: column; 
+      }
+      .thank-you-title {
+        font-size: 2rem;
+      }
+      .thank-you-text {
+        font-size: 1rem;
+      }
+      .custom-cursor {
+        display: none;
+      }
+    }
+  </style>
+  <style>
+  #endScreen {
+    display: none;
+    background: url('Three_bg.jpg') no-repeat center center;
+    background-size: cover;
+    color: var(--accent);
+    text-align: center;
+    padding: 20px;
+  }
+  #endScreen::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(0, 0, 0, 0.5); 
+    z-index: 0;
+  }
+  .thank-you-container {
+    position: relative;
+    z-index: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    gap: 20px;
+    animation: fadeIn 1.5s ease;
+  }
+
+  /* Gaya untuk judul */
+  .thank-you-title {
+    font-size: 3rem;
+    color: #2b4a2d; 
+    text-shadow:
+     0 0 8px  #ffff66,
+     0 0 16px #ffff66,
+     0 0 24px #ffff66,
+     0 0 32px #ffff66;
+    animation: glow 2s infinite alternate;
+    animation: pulse 2s infinite;
+  }
+
+  /* Gaya untuk teks */
+  .thank-you-text {
+    font-size: 1.5rem;
+    color: #f8f1e5;
+    text-shadow: 0 0 8px rgba(0, 0, 0, 0.5);
+    animation: pulse 2s infinite;
+  }
+  @keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.8;
+  }
+}
+
+  /* Efek bintang berkelap-kelip */
+  .twinkle {
+    position: absolute;
+    inset: 0;
+    background: url('stars.png') repeat;
+    opacity: 0.3;
+    animation: twinkling 20s linear infinite;
+    pointer-events: none;
+  }
+
+  /* Animasi teks bercahaya */
+  @keyframes glow {
+    from {
+      text-shadow: 0 0 12px rgba(255, 223, 0, 0.8), 0 0 24px rgba(255, 223, 0, 0.6);
+    }
+    to {
+      text-shadow: 0 0 24px rgba(255, 223, 0, 1), 0 0 36px rgba(255, 223, 0, 0.8);
+    }
+  }
+
+  /* Animasi fade-in */
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  /* Animasi bintang berkelap-kelip */
+  @keyframes twinkling {
+    from {
+      background-position: 0 0;
+    }
+    to {
+      background-position: -1000px 1000px;
+    }
+  }
+</style>
+</head>
+<body>
+  <div class="fairy-dust"></div>
+  <div class="custom-cursor" id="customCursor"></div>
+  <!-- Video Screen -->
+  <div id="videoScreen" class="screen">
+    <video id="introVideo" autoplay muted>
+      <source src="vid_awal.mp4" type="video/mp4">
+      Your browser does not support the video tag.
+    </video>
+  </div>
+  <!-- PIN Screen -->
+  <div id="pinScreen" class="screen">
+    <div class="door left"></div>
+    <div class="door right"></div>
+    <div class="pin-content">
+      <img src="Blue_Elf.png" alt="Blue Elf">
+      <h1>Guess The Password!</h1>
+      <p>(key: Borndate)</p>
+      <div id="pinDots" class="pin-dots"></div>
+      <div class="keypad">
+        <button class="key">1</button><button class="key">2</button><button class="key">3</button>
+        <button class="key">4</button><button class="key">5</button><button class="key">6</button>
+        <button class="key">7</button><button class="key">8</button><button class="key">9</button>
+        <button class="key">.</button><button class="key">0</button><button class="key">#</button>
+      </div>
+    </div>
+  </div>
+  <!-- Envelope Screen -->
+  <div id="envelopeScreen" class="screen">
+    <div class="envelope-background"></div>
+    <div class="envelope-container">
+      <div id="envelope" class="envelope">✉️</div>
+      <p style="font-weight: bold;">Click on the envelope to open!</p>
+    </div>
+  </div>
+  <!-- Invite Screen -->
+  <div id="inviteScreen" class="screen">
+    <div class="invite-background"></div>
+    <div class="invite-container">
+        <img id="inviteImage" class="invite" src="inv_card.jpeg" alt="Undangan">
+        <p class="invite-text">Click on the invitation card to continue</p>
+    </div>
+  </div>
+  <!-- End Screen -->
+  <div id="endScreen" class="screen">
+    <div class="thank-you-container">
+      <h1 class="thank-you-title">~Thankyou~</h1>
+      <p class="thank-you-text">See U In My Birthday Dinner!</p>
+      <p class="thank-you-text">Don't forget to scan the QR below to order the menu!</p>
+      <img src="menu_qrcode.png" alt="qrcode" style="width: 200px; height: auto; border-radius: 10%; margin-top: 20px;">
+      <div class="twinkle"></div>
+    </div>
+  </div>
+  <script>
+    const videoScreen = document.getElementById('videoScreen');
+    const introVideo = document.getElementById('introVideo');
+    const skipButton = document.getElementById('skipVideo');
+
+    introVideo.addEventListener('ended', () => {
+      videoScreen.style.display = 'none';
+      pinScreen.style.display = 'flex';
+    });
+
+    const targetPin = '03042008';
+    let pin = '';
+    const pinScreen = document.getElementById('pinScreen');
+    document.getElementById('envelope').addEventListener('click', () => {
+     envelopeScreen.style.display = 'none';
+     inviteScreen.style.display = 'flex';
+    });
+    const customCursor = document.getElementById('customCursor');
+    document.addEventListener('mousemove', (e) => {
+        customCursor.style.left = `${e.pageX}px`;
+        customCursor.style.top = `${e.pageY}px`;
+    });
+    const inviteScreen = document.getElementById('inviteScreen');
+    document.getElementById('inviteImage').addEventListener('click', () => {
+      inviteScreen.style.animation = 'fadeOut 0.5s ease';
+      setTimeout(() => {
+        inviteScreen.style.display = 'none';
+        endScreen.style.display = 'flex';
+      }, 500); 
+    });
+    const endScreen = document.getElementById('endScreen');
+    const pinDots = document.getElementById('pinDots');
+    const keys = document.querySelectorAll('.key');
+    function updateDots(){pinDots.innerHTML='';for(let i=0;i<pin.length;i++){const d=document.createElement('div');d.classList.add('dot','filled');pinDots.appendChild(d);}}
+    const leftDoor = document.querySelector('.door.left');
+    const rightDoor = document.querySelector('.door.right');
+    keys.forEach(key=>key.addEventListener('click',()=>{const v=key.textContent;if(v==='.')pin=pin.slice(0,-1);else if(v==='#'){if(pin===targetPin)openSafe();else{alert('PIN salah!');pin='';}}else if(pin.length<targetPin.length)pin+=v;updateDots();if(pin.length===targetPin.length){if(pin===targetPin)openSafe();else setTimeout(()=>{alert('PIN salah!');pin='';updateDots();},200);} }));
+    function openSafe(){setTimeout(()=>{leftDoor.classList.add('open');rightDoor.classList.add('open');},600);}    
+    leftDoor.addEventListener('transitionend',()=>{pinScreen.style.display='none';envelopeScreen.style.display='flex';});
+    document.getElementById('envelope').addEventListener('click',()=>{envelopeScreen.style.display='none';inviteScreen.style.display='flex';});
+    document.getElementById('inviteImage').addEventListener('click',()=>{inviteScreen.style.display='none';endScreen.style.display='flex';});
+  </script>
+  <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.5.1/dist/confetti.browser.min.js"></script>
+  <script>
+    function fireConfetti() {
+      confetti({
+        particleCount: 100,
+        angle: 60,
+        spread: 70,
+        origin: { x: 0 },
+        colors: ['#ff0', '#f00', '#0f0', '#00f', '#ff0'],
+      });
+      confetti({
+        particleCount: 100,
+        angle: 120,
+        spread: 70,
+        origin: { x: 1 },
+        colors: ['#ff0', '#f00', '#0f0', '#00f', '#ff0'],
+      });
+    }
+    endScreen.addEventListener('click', fireConfetti);
+    document.addEventListener('DOMContentLoaded', () => {
+      pinScreen.style.display = 'flex';
+      const leftDoor = document.querySelector('.door.left');
+      const rightDoor = document.querySelector('.door.right');
+      leftDoor.classList.remove('open');
+      rightDoor.classList.remove('open');
+    });
+    </script>
+</body>
+</html>
